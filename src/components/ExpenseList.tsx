@@ -32,7 +32,7 @@ export const ExpenseList = () => {
             </th>
           </tr>
         </thead>
-        <tbody>
+        <tbody data-testid="expenses-list">
           {expenses.map((expense, index) => {
             const date = expense.date.toLocaleDateString('en-us', {
               weekday: 'short',

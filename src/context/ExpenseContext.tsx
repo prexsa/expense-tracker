@@ -10,7 +10,7 @@ export const ExpenseContext = createContext<ExpenseContextProps | undefined>(und
 
 export const ExpenseProvider = (props: { children: React.ReactNode }) => {
   const [expenses, setExpenses] = useState<IFormInputs[]>([]);
-
+  // console.log('expenses: ', expenses);
   const addExpense = (values: IFormInputs) => {
     setExpenses([...expenses, values]);
   };

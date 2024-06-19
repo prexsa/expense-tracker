@@ -15,6 +15,10 @@ export interface IFormInputs {
   date: Date;
 }
 
+export interface ISaveProps {
+  saveData: (data: IFormInputs) => void;
+}
+
 const schema = yup.object({
   description: yup.string().required('Description is required').max(25, 'Description is too long'),
   date: yup.date().default(() => new Date()),
@@ -27,7 +31,7 @@ const schema = yup.object({
 
 const EmptyDiv = () => <div className="invisible">empty</div>;
 
-export const AddExpense = () => {
+export const AddExpense = ({ saveData }: ISaveProps) => {
   const {
     register,
     control,
@@ -38,7 +42,10 @@ export const AddExpense = () => {
   const { addExpense } = useExpense();
 
   const handleOnSubmit: SubmitHandler<IFormInputs> = ({ description, date, category, amount }: IFormInputs) => {
+    saveData({ date, category, amount, description });
     addExpense({ date, category, amount, description });
+    // console.log({ date, category, amount, description });
+    // 'saveData' is used for testing form
     reset();
   };
 
@@ -51,7 +58,7 @@ export const AddExpense = () => {
             <label htmlFor="description" className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
               Description
             </label>
-            <Input type="text" placeholder="A short description ..." {...register('description')} />
+            <Input id="description" type="text" placeholder="A short description ..." {...register('description')} />
             {/*errors.description && <p style={{ color: '#bf1650', fontSize: 14 }}>{errors.description.message}</p>*/}
             {errors.description ? (
               <div className="text-red-error">
@@ -71,6 +78,7 @@ export const AddExpense = () => {
               defaultValue={new Date()}
               render={({ field }) => (
                 <DatePicker
+                  id="date"
                   placeholderText="Select date"
                   onChange={(date) => field.onChange(date)}
                   selected={field.value}
@@ -89,6 +97,7 @@ export const AddExpense = () => {
               className="w-250 pl-4 pr-3 py-2 bg-transparent border outline-none border-zinc-600 rounded placeholder:text-zinc-500 focus:border-grey"
               {...register('category')}
               defaultValue={''}
+              id="category"
             >
               <option value="" disabled>
                 Categories
@@ -133,6 +142,7 @@ export const AddExpense = () => {
             </svg>
 
             <Input
+              id="amount"
               type="number"
               placeholder="Amount ..."
               style={{ width: '120px' }}
