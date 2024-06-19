@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -40,18 +41,31 @@ export const AddExpense = ({ saveData }: ISaveProps) => {
     formState: { errors },
   } = useForm<IFormInputs>({ resolver: yupResolver(schema) });
   const { addExpense } = useExpense();
+  const [isRecurring, setIsRecurring] = useState<boolean>(false);
 
   const handleOnSubmit: SubmitHandler<IFormInputs> = ({ description, date, category, amount }: IFormInputs) => {
-    saveData({ date, category, amount, description });
+    // saveData({ date, category, amount, description });
     addExpense({ date, category, amount, description });
     // console.log({ date, category, amount, description });
     // 'saveData' is used for testing form
     reset();
   };
 
+  const handleInputToggle = () => setIsRecurring(!isRecurring);
+
   return (
     <>
-      <h3 className="mt-10 text-center text-lg font-bold">Enter your expenses...</h3>
+      <div className="inline-flex mt-10 gap-x-2">
+        <label className="relative inline-flex cursor-pointer items-center">
+          <input id="switch-3" type="checkbox" onClick={handleInputToggle} className="peer sr-only" />
+          <label htmlFor="switch-3" className="hidden"></label>
+          <div className="peer h-4 w-11 rounded border bg-slate-200 after:absolute after:top-0.5 after:left-0 after:h-6 after:w-6 after:rounded-md after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-focus:ring-sky-500"></div>
+        </label>
+        <h3 className="text-center text-lg font-bold">{isRecurring ? 'Recurring ' : 'Non-recurring'}</h3>
+      </div>
+      <h3 className="text-center text-lg font-bold">
+        {isRecurring ? 'Recurring monthly payments ' : 'Enter your expenses...'}
+      </h3>
       <form className="w-full" onSubmit={handleSubmit(handleOnSubmit)}>
         <div className="flex items-center w-full gap-2 m-auto">
           <div className="flex flex-col justify-items-start items-start my-5">
