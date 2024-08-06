@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, Controller, SubmitHandler } from 'react-hook-form';
 import { yupResolver } from '@hookform/resolvers/yup';
 import * as yup from 'yup';
@@ -6,18 +6,20 @@ import { ErrorMessage } from '@hookform/error-message';
 import { useExpense } from '../context/useExpense';
 import { Input } from './Input';
 import DatePicker from 'react-datepicker';
+import { Switch, Button } from '@headlessui/react';
 
 import 'react-datepicker/dist/react-datepicker.css';
 
-export interface IFormInputs {
+export interface IFormValues {
   description: string;
   category: string;
   amount: number;
   date: Date;
+  isRecurring: boolean;
 }
 
 export interface ISaveProps {
-  saveData: (data: IFormInputs) => void;
+  saveData: (data: IFormValues) => void;
 }
 
 const schema = yup.object({
@@ -28,6 +30,7 @@ const schema = yup.object({
     .number()
     .transform((value) => (Number.isNaN(value) ? null : value))
     .required('Amount is required'),
+  isRecurring: yup.boolean().default(false),
 });
 
 const EmptyDiv = () => <div className="invisible">empty</div>;
@@ -38,34 +41,35 @@ export const AddExpense = ({ saveData }: ISaveProps) => {
     control,
     handleSubmit,
     reset,
+    watch,
     formState: { errors },
-  } = useForm<IFormInputs>({ resolver: yupResolver(schema) });
+  } = useForm({ resolver: yupResolver(schema) });
   const { addExpense } = useExpense();
   const [isRecurring, setIsRecurring] = useState<boolean>(false);
 
-  const handleOnSubmit: SubmitHandler<IFormInputs> = ({ description, date, category, amount }: IFormInputs) => {
-    // saveData({ date, category, amount, description });
-    addExpense({ date, category, amount, description });
-    // console.log({ date, category, amount, description });
+  // use watch to monitor switch value change for ui
+  useEffect(() => {
+    const subscription = watch((value) => setIsRecurring(Boolean(value.isRecurring)));
+    return () => subscription.unsubscribe();
+  }, [watch]);
+
+  const handleOnSubmit: SubmitHandler<IFormValues> = ({
+    description,
+    date,
+    category,
+    amount,
+    isRecurring,
+  }: IFormValues) => {
+    // saveData({ date, category, amount, description, isRecurring });
+    addExpense({ date, category, amount, description, isRecurring });
+    console.log({ date, category, amount, description, isRecurring });
     // 'saveData' is used for testing form
     reset();
   };
 
-  const handleInputToggle = () => setIsRecurring(!isRecurring);
-
   return (
     <>
-      <div className="inline-flex mt-10 gap-x-2">
-        <label className="relative inline-flex cursor-pointer items-center">
-          <input id="switch-3" type="checkbox" onClick={handleInputToggle} className="peer sr-only" />
-          <label htmlFor="switch-3" className="hidden"></label>
-          <div className="peer h-4 w-11 rounded border bg-slate-200 after:absolute after:top-0.5 after:left-0 after:h-6 after:w-6 after:rounded-md after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-focus:ring-sky-500"></div>
-        </label>
-        <h3 className="text-center text-lg font-bold">{isRecurring ? 'Recurring ' : 'Non-recurring'}</h3>
-      </div>
-      <h3 className="text-center text-lg font-bold">
-        {isRecurring ? 'Recurring monthly payments ' : 'Enter your expenses...'}
-      </h3>
+      <h3 className="mt-10 text-center text-lg font-bold">Add expenses</h3>
       <form className="w-full" onSubmit={handleSubmit(handleOnSubmit)}>
         <div className="flex items-center w-full gap-2 m-auto">
           <div className="flex flex-col justify-items-start items-start my-5">
@@ -172,14 +176,55 @@ export const AddExpense = ({ saveData }: ISaveProps) => {
               <EmptyDiv />
             )}
           </div>
-          <button
+          {/*<button
             type="submit"
             className="mt-1 px-6 py-2 text-sm font-normal text-blue-900 border-2 border-blue-900 active:scale-95 rounded"
           >
             Add
-          </button>
+          </button>*/}
+        </div>
+        <div className="text-center">
+          <div>
+            <div className="inline-flex gap-x-2">
+              <h3>Is expense recurring?</h3>
+              <Controller
+                name="isRecurring"
+                control={control}
+                render={({ field }) => (
+                  <Switch
+                    onChange={(val: boolean) => field.onChange(Boolean(val))}
+                    checked={Boolean(field.value)}
+                    className="group relative flex h-7 w-14 cursor-pointer rounded-full bg-black/10 p-1 transition-colors duration-200 ease-in-out focus:outline-none data-[focus]:outline-1 data-[focus]:outline-white data-[checked]:bg-[#0284c7]"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className="pointer-events-none inline-block size-5 translate-x-0 -translate-y-px rounded-full bg-white ring-0 shadow-lg transition duration-200 ease-in-out group-data-[checked]:translate-x-7"
+                    />
+                  </Switch>
+                )}
+              />
+
+              <h3 className="text-center text-lg font-medium">{isRecurring ? 'Yes ' : 'No'}</h3>
+            </div>
+          </div>
+          <Button
+            type="submit"
+            className="mt-1 px-6 py-2 text-sm font-normal text-blue-900 border-2 border-blue-900 active:scale-95 rounded"
+          >
+            Add
+          </Button>
         </div>
       </form>
     </>
   );
 };
+
+// https://codesandbox.io/p/sandbox/convert-in-boolean-with-rhf-and-zod-solved-1s3sf7?file=%2Fsrc%2FApp.js
+/*<label className="relative inline-flex cursor-pointer items-center">
+  <input id="switch-3" type="checkbox" className="peer sr-only" {...register('isRecurring')} />
+  <label htmlFor="switch-3" className="hidden"></label>
+  <div className="peer h-4 w-11 rounded border bg-slate-200 after:absolute after:top-0.5 after:left-0 after:h-6 after:w-6 after:rounded-md after:border after:border-gray-300 after:bg-white after:transition-all after:content-[''] peer-checked:bg-sky-500 peer-checked:after:translate-x-full peer-focus:ring-sky-500"></div>
+</label>*/
+
+// https://headlessui.com/react/switch
+// https://www.codemancers.com/blog/2024-02-22-react-hook-foem-with-headless-ui/
