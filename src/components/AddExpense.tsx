@@ -207,9 +207,15 @@ export const AddExpense = ({ saveData }: ISaveProps) => {
               <h3 className="text-center text-lg font-medium">{isRecurring ? 'Yes ' : 'No'}</h3>
             </div>
           </div>
-          <Button
+          {/*<Button
             type="submit"
             className="mt-1 px-6 py-2 text-sm font-normal text-blue-900 border-2 border-blue-900 active:scale-95 rounded"
+          >
+            Add
+          </Button>*/}
+          <Button
+            type="submit"
+            className="mt-1 px-6 py-2 text-sm font-normal transition-all border-2 bg-[#3b82f6] text-white shadow-lg hover:-translate-y-0.5 hover:shadow-blue-300 hover:border-b-[2px] active:shadow-none"
           >
             Add
           </Button>
